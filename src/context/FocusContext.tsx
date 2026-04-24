@@ -67,9 +67,9 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
   const [phoneDecayScore, setPhoneDecayScore] = useState(100); // 100 = no penalty
   const phoneDecayInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Score decay constants
-  const ASSESS_PERIOD_S = 30;  // 30 seconds assessment before penalty starts
-  const DECAY_DURATION_S = 120; // 2 minutes to reach floor after assessment
+  // Score decay constants — fast, matches browser speed
+  const ASSESS_PERIOD_S = 15;  // 15 seconds assessment before penalty starts
+  const DECAY_DURATION_S = 60; // 60 seconds to reach floor after assessment
 
   // Start/stop the decay ticker
   const startPhoneDecay = useCallback((category: string) => {
@@ -106,10 +106,9 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // COMPOSITE SCORE: min(browserScore, phoneDecayScore)
-  // Phone score gradually drops from 100 → floor over time
+  // COMPOSITE SCORE: min(browserScore, phoneDecayScore) — always whole number
   const score = useMemo(() => {
-    return Math.min(browserScore, phoneDecayScore);
+    return Math.round(Math.min(browserScore, phoneDecayScore));
   }, [browserScore, phoneDecayScore]);
 
   // Distraction source for UI (phone counts as distracting once past assessment period)
@@ -293,12 +292,12 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
             const elapsed = state.elapsedSeconds || 0;
             const floor = PHONE_PENALTY[state.category] ?? 35;
             let decayScore = 100;
-            if (elapsed > 30) {
-              const decayElapsed = elapsed - 30;
-              const progress = Math.min(1, decayElapsed / 120);
+            if (elapsed > 15) {
+              const decayElapsed = elapsed - 15;
+              const progress = Math.min(1, decayElapsed / 60);
               decayScore = Math.round(90 - (90 - floor) * progress);
             } else {
-              decayScore = Math.round(100 - (elapsed / 30) * 10);
+              decayScore = Math.round(100 - (elapsed / 15) * 10);
             }
             setPhoneDecayScore(decayScore);
             // Restart the live ticker from current position
@@ -335,18 +334,6 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
     if (shieldActive && !wasShieldActive.current) {
       activateGating();
       enableDND().then((ok) => console.log('DND enabled:', ok)).catch(() => null);
-      // Fire alert notification
-      const isPhone = phoneDistractedRef.current;
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: isPhone ? '📱 Phone Distraction Detected' : '⚠ Focus Dropping',
-          body: isPhone
-            ? `You're on a distracting app — your score is dropping!`
-            : 'You seem to be drifting — refocus!',
-          data: { type: 'focus_drop_alert' },
-        },
-        trigger: null,
-      }).catch(() => null);
     } else if (!shieldActive && wasShieldActive.current) {
       disableDND().then((ok) => console.log('DND disabled:', ok)).catch(() => null);
       if (pendingQuietRelease.current) {
@@ -366,7 +353,13 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
     const channel = supabase.channel('focus-' + userId)
       .on('broadcast', { event: 'focus_score_update' }, ({ payload }: { payload: any }) => {
         console.log('SCORE UPDATE (tick):', payload);
-        if (payload.score !== undefined) setBrowserScore(payload.score);
+        // Skip raw 'phone' source — local phone decay handles that
+        // Accept 'composite' (min of both) and browser-only updates
+        if (payload.source === 'phone') return;
+        if (payload.score !== undefined) {
+          const rounded = Math.round(payload.score);
+          setBrowserScore(rounded);
+        }
         if (payload.state) {
           setState(payload.state);
           currentBrowserState.current = payload.state;
@@ -375,7 +368,7 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
       })
       .on('broadcast', { event: 'focus_active_change' }, ({ payload }: { payload: any }) => {
         console.log('FOCUS ACTIVE CHANGE:', payload);
-        if (payload.score !== undefined) setBrowserScore(payload.score);
+        if (payload.score !== undefined) setBrowserScore(Math.round(payload.score));
         if (payload.state) {
           setState(payload.state);
           currentBrowserState.current = payload.state;

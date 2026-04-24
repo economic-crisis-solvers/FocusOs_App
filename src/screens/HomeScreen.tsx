@@ -106,14 +106,14 @@ export default function HomeScreen({ navigation }: any) {
   const stateLabel = () => {
     if (!shieldActive) return 'SYSTEM NOMINAL';
     if (recovering) return 'RECOVERING';
-    if (distractionSource === 'phone') return '📱 PHONE DISTRACTION';
-    if (distractionSource === 'both') return '⚠ DUAL DISTRACTION';
+    if (distractionSource === 'phone') return 'PHONE DISTRACTION';
+    if (distractionSource === 'both') return 'DUAL DISTRACTION';
     return 'THREAT DETECTED';
   };
   const STATE = stateLabel();
 
   const STATE_SHORT = shieldActive
-    ? (recovering ? 'COOLDOWN' : distractionSource === 'phone' ? '📱 PHONE' : 'SHIELD ON')
+    ? (recovering ? 'COOLDOWN' : distractionSource === 'phone' ? 'PHONE' : 'SHIELD ON')
     : 'ACTIVE';
 
   const handleSecretTap = () => {
@@ -166,10 +166,10 @@ export default function HomeScreen({ navigation }: any) {
         }]}>
           <Text style={[styles.threatText, { color: recovering ? C.AMBER : C.RED }]}>
             {recovering
-              ? `⏳  RECOVERING — ${recoveryCountdown}s UNTIL RELEASE`
+              ? `— RECOVERING — ${recoveryCountdown}s UNTIL RELEASE`
               : phoneDistraction
-                ? `📱  ${phoneDistraction.appPackage.split('.').pop()?.toUpperCase()} — ${phoneDistraction.minutesInForeground.toFixed(0)}m`
-                : `⚠  FOCUS SHIELD ENGAGED — ${queueCount} HELD`
+                ? `▸ ${phoneDistraction.appPackage.split('.').pop()?.toUpperCase()} — ${phoneDistraction.minutesInForeground.toFixed(0)}m`
+                : `◆ FOCUS SHIELD ENGAGED — ${queueCount} HELD`
             }
           </Text>
         </View>
@@ -261,7 +261,7 @@ export default function HomeScreen({ navigation }: any) {
 
         <TouchableOpacity style={[styles.dataCell, styles.dataCellMain, { borderColor: ACCENT + '60', backgroundColor: ACCENT + '08' }]} onPress={() => navigation.navigate('Override')}>
           <Text style={[styles.dataCellLabel, { color: ACCENT + '60' }]}>SHIELD</Text>
-          <Text style={[styles.dataCellValue, { color: ACCENT }]}>{shieldActive ? (recovering ? '⏳' : 'ON') : 'OFF'}</Text>
+          <Text style={[styles.dataCellValue, { color: ACCENT }]}>{shieldActive ? (recovering ? '~' : 'ON') : 'OFF'}</Text>
           <Text style={[styles.dataCellSub, { color: ACCENT + '40' }]}>OVERRIDE →</Text>
         </TouchableOpacity>
 
@@ -287,7 +287,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={[styles.bottomInfoBox, { borderColor: ACCENT + '20' }]}>
           <Text style={[styles.bottomInfoLabel, { color: ACCENT + '40' }]}>PHONE</Text>
           <Text style={[styles.bottomInfoValue, { color: phoneDistraction ? (C.RED + '80') : (C.GREEN + '80') }]}>
-            {phoneDistraction ? '⚠' : '✓'}
+            {phoneDistraction ? 'WARN' : 'OK'}
           </Text>
         </View>
       </View>

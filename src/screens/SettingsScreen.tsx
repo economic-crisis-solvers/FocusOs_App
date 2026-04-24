@@ -293,8 +293,8 @@ export default function SettingsScreen() {
             <Text style={styles.cardLabel}>DO NOT DISTURB</Text>
             <Text style={styles.cardSub}>Block ALL notifications when shield is active</Text>
           </View>
-          <Text style={[styles.cardBigValue, { color: dndGranted ? C.GREEN : C.RED, fontSize: 20 }]}>
-            {dndGranted ? '✓' : '✗'}
+          <Text style={[styles.cardBigValue, { color: dndGranted ? C.GREEN : C.RED, fontSize: 14, letterSpacing: 2 }]}>
+            {dndGranted ? 'ON' : 'OFF'}
           </Text>
         </View>
         <TouchableOpacity
@@ -307,7 +307,7 @@ export default function SettingsScreen() {
           }}
         >
           <Text style={[styles.dndBtnText, dndGranted && styles.dndBtnTextGranted]}>
-            {dndGranted ? '[ ✓ ACCESS GRANTED ]' : '[ GRANT DND ACCESS ]'}
+            {dndGranted ? 'ACCESS GRANTED' : '[ GRANT DND ACCESS ]'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -319,8 +319,8 @@ export default function SettingsScreen() {
             <Text style={styles.cardLabel}>PHONE MONITORING</Text>
             <Text style={styles.cardSub}>Track distracting apps in foreground</Text>
           </View>
-          <Text style={[styles.cardBigValue, { color: usageGranted ? C.GREEN : C.RED, fontSize: 20 }]}>
-            {usageGranted ? '✓' : '✗'}
+          <Text style={[styles.cardBigValue, { color: usageGranted ? C.GREEN : C.RED, fontSize: 14, letterSpacing: 2 }]}>
+            {usageGranted ? 'ON' : 'OFF'}
           </Text>
         </View>
         <TouchableOpacity
@@ -332,7 +332,7 @@ export default function SettingsScreen() {
           }}
         >
           <Text style={[styles.dndBtnText, usageGranted && styles.dndBtnTextGranted]}>
-            {usageGranted ? '[ ✓ ACCESS GRANTED ]' : '[ GRANT USAGE ACCESS ]'}
+            {usageGranted ? 'ACCESS GRANTED' : '[ GRANT USAGE ACCESS ]'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -353,7 +353,7 @@ export default function SettingsScreen() {
 
       {/* Save */}
       <TouchableOpacity style={[styles.saveBtn, saved && styles.saveBtnSaved]} onPress={save}>
-        <Text style={styles.saveBtnText}>{saved ? '[ ✓ SAVED ]' : '[ SAVE CONFIG ]'}</Text>
+        <Text style={styles.saveBtnText}>{saved ? 'SAVED' : '[ SAVE CONFIG ]'}</Text>
       </TouchableOpacity>
 
       {/* Logout */}

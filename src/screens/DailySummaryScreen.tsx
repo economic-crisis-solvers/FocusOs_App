@@ -87,15 +87,18 @@ export default function DailySummaryScreen() {
     ? `${String(topPeak.hour).padStart(2, '0')}:00 — ${String((topPeak.hour + 1) % 24).padStart(2, '0')}:00`
     : '--:-- — --:--';
 
-  // Category icons
-  const categoryIcon = (cat: string) => {
+  // Text tags instead of emojis
+  const categoryTag = (cat: string) => {
     switch (cat) {
-      case 'entertainment': return '🎬';
-      case 'social': return '💬';
-      case 'other': return '📱';
-      default: return '⚡';
+      case 'entertainment': return 'ENT';
+      case 'social': return 'SOC';
+      case 'gaming': return 'GAM';
+      default: return 'OTH';
     }
   };
+
+  const categoryAccent = (i: number) =>
+    i === 0 ? C.RED : i === 1 ? C.YELLOW : '#00FF9460';
 
   const protectedMinutes = residue?.minutesProtected ?? 0;
   const residueRemaining = residue?.residueMinutesRemaining ?? 0;
@@ -152,23 +155,25 @@ export default function DailySummaryScreen() {
         </View>
       </View>
 
-      {/* Top Distractions — REAL DATA */}
+      {/* Top Distractions */}
       {distractions.length > 0 && (
         <View style={styles.card}>
           <Text style={styles.cardLabel}>TOP DISTRACTIONS</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderCell, { flex: 1 }]}>TYPE</Text>
+            <Text style={[styles.tableHeaderCell, { width: 60, textAlign: 'right' }]}>EVENTS</Text>
+            <Text style={[styles.tableHeaderCell, { width: 80, textAlign: 'right' }]}>RESIDUE</Text>
+          </View>
           {distractions.map((d, i) => (
-            <View key={i} style={styles.distractionRow}>
-              <Text style={styles.distractionIcon}>{categoryIcon(d.triggerCategory)}</Text>
-              <View style={styles.distractionInfo}>
-                <Text style={styles.distractionCategory}>{d.triggerCategory.toUpperCase()}</Text>
-                <Text style={styles.distractionMeta}>{d.eventCount} events · {Math.round(d.totalResidue)}m residue</Text>
+            <View key={i} style={[styles.tableRow, i < distractions.length - 1 && styles.tableRowBorder]}>
+              <View style={styles.tableRowLeft}>
+                <View style={[styles.categoryTag, { borderColor: categoryAccent(i) + '60', backgroundColor: categoryAccent(i) + '10' }]}>
+                  <Text style={[styles.categoryTagText, { color: categoryAccent(i) }]}>{categoryTag(d.triggerCategory)}</Text>
+                </View>
+                <Text style={styles.tableRowName}>{d.triggerCategory.toUpperCase()}</Text>
               </View>
-              <View style={styles.distractionBar}>
-                <View style={[styles.distractionBarFill, {
-                  width: `${Math.min(100, (d.eventCount / (distractions[0]?.eventCount || 1)) * 100)}%`,
-                  backgroundColor: i === 0 ? C.RED : i === 1 ? C.YELLOW : C.GREEN,
-                }]} />
-              </View>
+              <Text style={[styles.tableRowValue, { width: 60, textAlign: 'right' }]}>{d.eventCount}</Text>
+              <Text style={[styles.tableRowValue, { width: 80, textAlign: 'right', color: C.YELLOW }]}>{Math.round(d.totalResidue)}m</Text>
             </View>
           ))}
         </View>
@@ -267,14 +272,16 @@ const styles = StyleSheet.create({
   barFill: { height: '100%' },
   barLegend: { flexDirection: 'row', justifyContent: 'space-between' },
   legendText: { fontSize: 9, letterSpacing: 1 },
-  // Distraction rows
-  distractionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  distractionIcon: { fontSize: 18, width: 28, textAlign: 'center' },
-  distractionInfo: { flex: 1, gap: 2 },
-  distractionCategory: { color: C.GREEN, fontSize: 11, fontWeight: '700', letterSpacing: 2 },
-  distractionMeta: { color: '#00FF9040', fontSize: 9, letterSpacing: 1 },
-  distractionBar: { width: 60, height: 4, borderRadius: 2, backgroundColor: '#00FF9410', overflow: 'hidden' },
-  distractionBarFill: { height: '100%', borderRadius: 2 },
+  // Table style
+  tableHeader: { flexDirection: 'row', paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#00FF9415' },
+  tableHeaderCell: { color: '#00FF9025', fontSize: 7, letterSpacing: 2 },
+  tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+  tableRowBorder: { borderBottomWidth: 1, borderBottomColor: '#00FF940C' },
+  tableRowLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  categoryTag: { borderWidth: 1, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 2 },
+  categoryTagText: { fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  tableRowName: { color: '#00FF9070', fontSize: 11, letterSpacing: 1 },
+  tableRowValue: { color: C.GREEN, fontSize: 12, fontWeight: '700' },
   // Held
   heldRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   heldNumber: { fontSize: 52, fontWeight: '900' },

@@ -267,6 +267,7 @@ public class PhoneMonitorService extends Service {
 
     private void clearDistraction() {
         Log.d(TAG, "📱 Distraction cleared");
+        String prevCategory = currentDistractionCategory;
         currentDistractionPkg = null;
         distractionStartTime = 0;
         currentDistractionCategory = null;
@@ -277,8 +278,16 @@ public class PhoneMonitorService extends Service {
         }
         clearAlertNotification();
         updateMonitorNotification("✓ Focus restored — monitoring...");
+        // Tell backend phone is clear so dashboard score recovers
+        sendPhoneClear(prevCategory);
         // Short delay then reset to neutral
         handler.postDelayed(() -> updateMonitorNotification("Monitoring focus..."), 5000);
+    }
+
+    private void sendPhoneClear(String lastCategory) {
+        if (authToken == null || apiUrl == null) return;
+        // Send score=100 (no phone penalty) so backend broadcasts recovery
+        sendPhoneActivity("clear", lastCategory != null ? lastCategory : "none", 0, 100);
     }
 
     // ── Alert Notification ────────────────────────────────────────
@@ -373,14 +382,14 @@ public class PhoneMonitorService extends Service {
         double elapsedS = elapsedMs / 1000.0;
         int floor = "social".equals(category) ? 20 : 30;
 
-        if (elapsedS <= 30) {
-            // Assessment period — slight waver
-            double waver = (elapsedS / 30.0) * 10;
+        if (elapsedS <= 15) {
+            // Assessment period (15s) — slight waver
+            double waver = (elapsedS / 15.0) * 10;
             return (int) Math.max(floor, 100 - waver);
         } else {
-            // Decay period — linear drop to floor over 2 minutes
-            double decayElapsed = elapsedS - 30;
-            double progress = Math.min(1, decayElapsed / 120.0);
+            // Decay period (60s) — fast drop to floor
+            double decayElapsed = elapsedS - 15;
+            double progress = Math.min(1, decayElapsed / 60.0);
             return (int) Math.max(floor, 90 - (90 - floor) * progress);
         }
     }
